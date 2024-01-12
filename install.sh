@@ -36,7 +36,7 @@ clear='\e[0m'
 yellow='\e[33m'
 
 getLatestRelease() {
-  curl --silent \
+  curl --silent -k \
     "https://api.github.com/repos/${REPO_USER}/${REPO_MAIN}/releases/latest" \
     | grep tag_name \
     | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/v//g'
@@ -279,7 +279,7 @@ function installNativeDownloadBinarys () {
   # Download Binary tar files
   if ${INSTALL_APP}; then
     prettyBoxCurrent "Downloading ${APP_MAIN_NAME}"
-    if curl -OLfsS "${APP_URL}"; then
+    if curl -OLfsSk "${APP_URL}"; then
       prettyBoxComplete "Downloaded ${APP_MAIN_NAME}"
     else
       prettyBoxFailed "Failed to download ${APP_MAIN_NAME}" 1
@@ -287,7 +287,7 @@ function installNativeDownloadBinarys () {
   fi
   if ${INSTALL_UI}; then
     prettyBoxCurrent "Downloading ${APP_UI_NAME}"
-    if curl -OLfsS "${UI_URL}"; then
+    if curl -OLfsSk "${UI_URL}"; then
       prettyBoxComplete "Downloaded ${APP_UI_NAME}"
     else
       prettyBoxFailed "Failed to download ${APP_UI_NAME}" 1
