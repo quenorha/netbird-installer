@@ -24,7 +24,15 @@ You can pass the shell script arguments to allow it to do more things automaticl
 
 # Setup
 
-To do a fully automated install you could run the following (substituting your own setup key):
+SSH into the device.
+
+If installing on a WAGO device go to the /home directory before downloading and running the script
+
+```bash
+cd /home
+```
+
+To do a fully automated install you could run the following:
 
 ```bash
 curl -OLsk https://raw.githubusercontent.com/thomassandberg/netbird-installer/main/install.sh && sudo bash install.sh --quiet
