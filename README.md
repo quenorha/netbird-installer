@@ -2,7 +2,7 @@
 
 This shell script will install the [Netbird](https://netbird.io) Client.
 
-> This has only currently been tested on Debian 11 (Bullseye) although, it should work on any linux & darwin based system
+For some reasons, the /var/log/netbird folder can't be created on service startup, therefore the install.sh was modified in order to add the folder created in the /etc/init.d/netbird script.
 
 You can pass the shell script arguments to allow it to do more things automaticly.
 
@@ -35,7 +35,7 @@ cd /home
 To do a fully automated install you could run the following:
 
 ```bash
-curl -OLsk https://raw.githubusercontent.com/thomassandberg/netbird-installer/main/install.sh && sudo bash install.sh --quiet
+curl -OLsk https://raw.githubusercontent.com/quenorha/netbird-installer/main/install.sh && sudo bash install.sh --quiet
 ```
 
 ![images/screenshot.png](images/screenshot.png)
