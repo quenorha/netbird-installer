@@ -38,4 +38,10 @@ To do a fully automated install you could run the following:
 curl -OLsk https://raw.githubusercontent.com/quenorha/netbird-installer/main/install.sh && sudo bash install.sh --quiet
 ```
 
+If you have prepared a setup key in the Netbird admin console, you can set it up using --setup-key parameter : 
+```bash
+curl -OLsk https://raw.githubusercontent.com/quenorha/netbird-installer/main/install.sh && sudo bash install.sh --quiet --setup-key=ABCDEFGH-1234-5678-ABCD-EFGHIJKLM
+```
+
+
 ![images/screenshot.png](images/screenshot.png)
