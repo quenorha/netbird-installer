@@ -499,6 +499,7 @@ function installNativeService () {
       # Install Service
       prettyBoxCurrent "Installing Service"
       if ${NETBIRD_BIN} service install >/dev/null; then
+        sed -i '40i\            mkdir -p /var/log/netbird' /etc/init.d/netbird
         prettyBoxComplete "Service Successfully Installed"
       else
         prettyBoxFailed "Failed to install service"
