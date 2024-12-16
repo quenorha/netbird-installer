@@ -13,6 +13,7 @@ REPO_MAIN="netbird"
 # Set Default Variables
 INSTALL_APP=true
 INSTALL_UI=false
+INSTALL_MONITOR_LED=false
 INSTALL_DOCKER_BASED=false
 INSTALL_SERVICE=true
 PRECONFIGURE=true
@@ -51,6 +52,7 @@ showHelp () {
   echo "  -h,   --help                show brief help"
   echo "  -ia,  --install-app         Install Netbird Binary"
   echo "  -iui, --install-ui          Install Netbird UI Binary"
+  echo "  -im, --install-monitor      Install Netbird service monitor (use LED)"
   echo "  -iv,  --install-version     Target Install version (defaults to latest, ${VERSION})"
   echo "  -d,   --docker              Install Netbird in Docker"
   echo "  -ns,  --no-service          Don't install service"
@@ -141,6 +143,10 @@ while test $# -gt 0; do
       fi
       shift
       ;;
+	-im|--install-monitor)
+      INSTALL_MONITOR_LED=true
+      shift
+      ;;  
     -dn)
       shift
       DOCKER_NAME=${1}
@@ -241,6 +247,11 @@ function showInstallSummary () {
     echo -e "| Install UI Binary:             ${green}Yes${clear}"
   else
     echo -e "| Install UI Binary:             ${red}No${clear}"
+  fi
+   if ${INSTALL_MONITOR_LED}; then
+    echo -e "| Install Monitor LED:             ${green}Yes${clear}"
+  else
+    echo -e "| Install Monitor LED:             ${red}No${clear}"
   fi
 
   if ${INSTALL_DOCKER_BASED}; then
@@ -599,4 +610,12 @@ if ${INSTALL_DOCKER_BASED}; then
   installDocker
 else
   installNative
+fi
+
+
+if ${INSTALL_MONITOR_LED}; then
+  curl --silent --insecure https://raw.githubusercontent.com/quenorha/netbird-installer/refs/heads/main/monitor_netbird -o /etc/netbird/monitor_netbird
+  chmod +x /etc/netbird/monitor_netbird
+  (crontab -l 2>/dev/null; echo "* * * * *  /etc/netbird/monitor_netbird") | crontab -
+  /etc/netbird/monitor_netbird
 fi
