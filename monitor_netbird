@@ -1,0 +1,166 @@
+#!/bin/bash
+
+# Usage: ./monitor_service_led service LEDID
+# exemple: monitor_service_led lighttpd U1
+#eventmsg 0x40010N0C
+#Where N is LED number(0 to 6), and C the color (0 : OFF, 1 : GREEN, 2 : RED, 3 : YELLOW).
+#GREEN : Container running
+#ORANGE : Container stopped
+#RED : Container does not exist
+#
+#export VISUAL=nano; crontab -e (open crontab with nano by default)
+#* * * * *  /path/to/monitor_service_led lighttpd U1
+#
+
+usage(){ 
+    echo "Usage: ./monitor_service_led -s SERVICE -l LEDID [-d] "
+	echo "" 	
+	echo "This script will display the service or container status on a LED"
+	echo "  GREEN : Container or service running"
+	echo "  ORANGE : Container or service stopped "
+	echo "  RED : Container does not exist or Docker not installed/started (not used for service)"
+	echo "" 
+    echo "-h : display this help" 
+    echo "-s : service name or container name if -d option is used" 
+	echo "-l : Led ID where service status should be displayed. Acceptable values : U1 - U7 depending on the platform" 
+	echo "-d : argument to provide if the service to monitor is a Docker container"
+	echo "" 
+	echo "Example 1 : monitor lighttpd web server status : ./monitor_service_led -s lighttpd -l U1" 
+	echo "Example 2 : monitor mosquitto container status : ./monitor_service_led -s mosquitto -l U1 -d" 
+} 
+
+led_blink() {
+ledid=$1
+color=$2
+led_off $1
+if [ "$color" == "green" ]; then
+echo timer > "/sys/class/leds/${ledid}-${color}/trigger"
+elif [ "$color" == "red" ]; then
+echo timer > "/sys/class/leds/${ledid}-${color}/trigger"
+elif  [ "$color" == "orange" ]; then
+echo timer > "/sys/class/leds/${ledid}-red/trigger"
+echo timer > "/sys/class/leds/${ledid}-green/trigger"
+fi
+}
+
+stop_blink() {
+ledid=$1
+echo none > "/sys/class/leds/${ledid}-red/trigger"
+echo none > "/sys/class/leds/${ledid}-green/trigger"
+}
+
+
+led_off() {
+ledid=$1
+stop_blink $1
+echo 0 > "/sys/class/leds/${ledid}-red/brightness" 
+echo 0 > "/sys/class/leds/${ledid}-green/brightness" 
+}
+
+
+led_on() {
+ledid=$1
+color=$2
+stop_blink $1
+led_off $1
+if [ "$color" == "green" ]; then
+echo 255 > "/sys/class/leds/${ledid}-${color}/brightness"
+elif [ "$color" == "red" ]; then
+echo 255 > "/sys/class/leds/${ledid}-${color}/brightness"
+elif  [ "$color" == "orange" ]; then
+echo 255 > "/sys/class/leds/${ledid}-red/brightness" 
+echo 255 > "/sys/class/leds/${ledid}-green/brightness" 
+fi
+
+}
+
+while getopts l:dhs: flag
+do
+    case "${flag}" in
+        l) LED=${OPTARG};;
+		h) usage
+		    exit;;
+    esac
+done
+
+#SERVICE=$1
+
+
+DEVCONF="$(/etc/config-tools/get_typelabel_value DEVCONF)"
+ORDER="$(/etc/config-tools/get_typelabel_value ORDER)"
+
+if [ "$DEVCONF" == "" ]
+then
+	DEVCONF="0x000F"
+fi
+
+if [ "${ORDER:4:2}" == "81" ]
+then
+	PRODUCT="PFC100"
+	LED=pca955x:u1
+elif [ "${ORDER:0:3}" == "762" ] || [ "${ORDER:0:5}" == "752-8" ]
+then
+	PRODUCT="TP600"
+	LED=pca955x:h11
+elif [ "${ORDER:0:5}" == "751-9" ]
+then
+  PRODUCT="CC100"
+  LED=u1
+elif [ "${ORDER:4:2}" == "83" ]
+then
+  PRODUCT="PFC300"
+  LED=pca955x:u1
+elif [ "${ORDER:4:2}" == "82" ]
+then
+	# default
+	if [ "${ORDER:4:4}" == "8217" ]
+	then
+	PRODUCT="PFC200 4G"
+	LED=pca955x:usr
+	else
+	PRODUCT="PFC200"
+	LED=pca955x:u1
+	fi
+fi
+
+
+       which netbird >/dev/null
+
+       if [ $? -eq 0 ]
+       then
+			SERVICE=$( /etc/init.d/netbird status)
+			if [ "$SERVICE" == "Stopped" ]; then
+			  echo "CRITICAL - Netbird is installed but service is not running"
+			  led_blink $LED red
+			  
+			else  
+		   
+				RUNNING=$(netbird status | grep NeedsLogin)
+				if [ "$RUNNING" == "Daemon status: NeedsLogin" ]; then
+				  echo "CRITICAL - Netbird is installed but not logged in"
+				  led_on $LED orange
+				  
+				else  
+					   
+					RUNNING=$(netbird status | grep Management)
+					if [ $? -eq 1 ]; then
+					  echo "CRITICAL - Netbird not installed."
+					  led_blink $LED red
+					  exit 3
+					fi
+
+					if [ "$RUNNING" == "Management: Connected" ]; then
+					  echo "OK - Netbird is up and connected."
+					  led_on $LED green
+					elif [ "$RUNNING" == "Management: Disconnected" ]; then
+					  echo "CRITICAL - Netbird is running but not connected."
+					   led_blink $LED green
+					  exit 2
+					fi
+				fi
+			fi
+       else
+		  echo "CRITICAL - Netbird not installed !"
+			    led_on $LED red
+			  exit 3
+       fi
