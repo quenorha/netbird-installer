@@ -11,6 +11,7 @@ You can pass the shell script arguments to allow it to do more things automaticl
 | -h | --help | | Show Help |
 | -ia | --install-app | true | Install Netbird Binary |
 | -iui | --install-ui | false | Install Netbird UI Binary |
+| -im | --install-monitor | false | Install a periodic check of Netbird status, status is displayed on LED |
 | -iv | --install-version | latest | Target Install Version |
 | -d | --docker | false | Install Netbird in Docker |
 | -ns | --no-service | false | Don't install and start service |
