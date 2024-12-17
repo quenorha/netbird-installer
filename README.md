@@ -44,5 +44,21 @@ If you have prepared a setup key in the Netbird admin console, you can set it up
 curl -OLsk https://raw.githubusercontent.com/quenorha/netbird-installer/main/install.sh && sudo bash install.sh --quiet --setup-key=ABCDEFGH-1234-5678-ABCD-EFGHIJKLM
 ```
 
+If you want to check the status of Netbird on a LED, you can use the --install-monitor flag : 
+```bash
+curl -OLsk https://raw.githubusercontent.com/quenorha/netbird-installer/main/install.sh && sudo bash install.sh --quiet --install-monitor --setup-key=ABCDEFGH-1234-5678-ABCD-EFGHIJKLM
+```
+This will install a script which will be called every minute (thanks to crontab), and the result will be display on the WAGO controller LED :
+
+| Color | Meaning |
+| --- | --- |
+| Solid Red | Netbird not installed |
+| Blink Red | Service is not installed |
+| Solid Orange | Service started but not logged in |
+| Blink Green | Service started, logged in but not connected |
+| Solid Green | Connected |
+
+For most PFC it will use U1 LED, except for USR LED.
+For CC100 it will also use USR LED.
 
 ![images/screenshot.png](images/screenshot.png)
