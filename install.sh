@@ -249,9 +249,9 @@ function showInstallSummary () {
     echo -e "| Install UI Binary:             ${red}No${clear}"
   fi
    if ${INSTALL_MONITOR_LED}; then
-    echo -e "| Install Monitor LED:             ${green}Yes${clear}"
+    echo -e "| Install Monitor LED:           ${green}Yes${clear}"
   else
-    echo -e "| Install Monitor LED:             ${red}No${clear}"
+    echo -e "| Install Monitor LED:           ${red}No${clear}"
   fi
 
   if ${INSTALL_DOCKER_BASED}; then
@@ -478,6 +478,45 @@ function installNativePlaceBinarys () {
     esac
   fi
 }
+
+
+function installMonitorLED () {
+# Define the cron job you want to add 
+cron_job="* * * * *  /etc/netbird/monitor_netbird" 
+
+	if ${INSTALL_MONITOR_LED}; then
+	  
+	   prettyBoxCurrent "Downloading monitor_netbird script"
+	  if  curl --silent --insecure https://raw.githubusercontent.com/quenorha/netbird-installer/refs/heads/main/monitor_netbird -o /etc/netbird/monitor_netbird; then
+		  prettyBoxComplete "Downloading monitor_netbird script"
+		else
+		  prettyBoxFailed "Failed to download monitor_netbird script" 1
+		fi
+		
+	   prettyBoxCurrent "Setting monitor_netbird to 0755"
+	   if chmod 775 "/etc/netbird/monitor_netbird"; then
+		   prettyBoxComplete "/etc/netbird/monitor_netbird permission set succesfully"
+	   else
+		  prettyBoxFailed "Failed to set /etc/netbird/monitor_netbird permission" 1
+	   fi
+	   
+	   prettyBoxCurrent "Adding to crontab"
+	   
+	   
+	   
+		# Check if the cron job already exists 
+		if ! crontab -l | grep -Fxq "$cron_job"; then 
+			# If it does not exist, append it to the crontab 
+			(crontab -l; echo "$cron_job") | crontab - 
+			prettyBoxComplete "monitor_netbird added in crontab succesfully"
+		else 
+			prettyBoxCurrent "Cron job already exists"
+		fi 
+	  
+	  /etc/netbird/monitor_netbird > /dev/null
+	fi
+}
+
 function installNativeService () {
   if ${INSTALL_APP}; then
     if ${INSTALL_SERVICE}; then
@@ -571,6 +610,7 @@ function installNative () {
   installNativeDownloadBinarys
   installNativeExtractBinarys
   installNativePlaceBinarys
+  installMonitorLED
   installNativeService
   installNativePreconfigure
 }
@@ -610,12 +650,4 @@ if ${INSTALL_DOCKER_BASED}; then
   installDocker
 else
   installNative
-fi
-
-
-if ${INSTALL_MONITOR_LED}; then
-  curl --silent --insecure https://raw.githubusercontent.com/quenorha/netbird-installer/refs/heads/main/monitor_netbird -o /etc/netbird/monitor_netbird
-  chmod +x /etc/netbird/monitor_netbird
-  (crontab -l 2>/dev/null; echo "* * * * *  /etc/netbird/monitor_netbird") | crontab -
-  /etc/netbird/monitor_netbird
 fi
