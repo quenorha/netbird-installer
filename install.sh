@@ -487,7 +487,7 @@ cron_job="* * * * *  /etc/netbird/monitor_netbird"
 	if ${INSTALL_MONITOR_LED}; then
 	  
 	   prettyBoxCurrent "Downloading monitor_netbird script"
-	  if  curl --silent --insecure https://raw.githubusercontent.com/quenorha/netbird-installer/refs/heads/main/monitor_netbird -o /etc/netbird/monitor_netbird; then
+	  if  curl -LfsS https://raw.githubusercontent.com/quenorha/netbird-installer/refs/heads/main/monitor_netbird -o /etc/netbird/monitor_netbird; then
 		  prettyBoxComplete "Downloading monitor_netbird script"
 		else
 		  prettyBoxFailed "Failed to download monitor_netbird script" 1
